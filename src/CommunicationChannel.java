@@ -72,7 +72,6 @@ public class CommunicationChannel {
 				lock.unlock();
 			}
 		} catch (InterruptedException e) {
-			lock.unlock();
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -100,7 +99,6 @@ public class CommunicationChannel {
 				lock2.unlock();
 			}
 		} catch (InterruptedException e) {
-			lock2.unlock();
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
