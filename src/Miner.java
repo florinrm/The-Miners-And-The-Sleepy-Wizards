@@ -83,16 +83,18 @@ public class Miner extends Thread {
 
 	@Override
 	public void run() {
-		synchronized (CommunicationChannel.someLock) {
-			Message message = channel.getMessageWizardChannel();
-			if (message.getData().equals(Wizard.EXIT))
-				System.exit(0);
-			String msg = encryptMultipleTimes(message.getData(), hashCount);
-			synchronized (solved) {
-				solved.add(message.getParentRoom());
-				if (!solved.contains(message.getCurrentRoom())) {
-					channel.putMessageWizardChannel(new Message(message.getParentRoom(), message.getCurrentRoom(), msg));
-					solved.add(message.getCurrentRoom());
+		for(;;) {
+			Message messageFromWizard = channel.getMessageWizardChannel();
+			if (messageFromWizard.getParentRoom() == -1) {
+				if (messageFromWizard.getData().compareTo(Wizard.EXIT) == 0)
+					break;
+			} else {
+				messageFromWizard = channel.getMessageWizardChannel();
+				if (!solved.contains(messageFromWizard.getCurrentRoom())) {
+					solved.add(messageFromWizard.getCurrentRoom());
+					String hashedString = encryptMultipleTimes(messageFromWizard.getData(), hashCount);
+					channel.putMessageMinerChannel(new Message(messageFromWizard.getParentRoom(),
+							messageFromWizard.getCurrentRoom(), hashedString));
 				}
 			}
 		}

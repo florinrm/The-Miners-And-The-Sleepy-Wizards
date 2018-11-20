@@ -25,14 +25,13 @@ public class CommunicationChannel {
 	 *            message to be put on the channel
 	 */
 	public void putMessageMinerChannel(Message message) {
-		//lock2.lock();
 		try {
-			System.out.println("To miner " + message.getData());
+			//System.out.println("To miner " + message.getData());
 			minersMessages.put(message);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			//lock2.lock();
 		}
 	}
 
@@ -46,7 +45,9 @@ public class CommunicationChannel {
 		Message msg = null;
 		try {
 			msg = minersMessages.take();
-			System.out.println("From miner " + msg.getData());
+			//System.out.println("From miner " + msg.getData());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -64,11 +65,20 @@ public class CommunicationChannel {
 	public void putMessageWizardChannel(Message message) {
 		lock.lock();
 		try {
-			System.out.println("To wizard " + message.getData());
+			//System.out.println("To wizard " + message.getData());
 			wizardsMessages.put(message);
+			if (message.getParentRoom() == -1 && (message.getData().compareTo(Wizard.EXIT) == 0
+					|| message.getData().compareTo(Wizard.END) == 0)) {
+				lock.unlock();
+			}
+		} catch (InterruptedException e) {
+			lock.unlock();
+			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
+		}
+		if (lock.getHoldCount() == 2) {
+			lock.unlock();
 			lock.unlock();
 		}
 	}
@@ -80,12 +90,24 @@ public class CommunicationChannel {
 	 * @return message from the miner channel
 	 */
 	public Message getMessageWizardChannel() {
+		lock2.lock();
 		Message msg = null;
 		try {
 			msg = wizardsMessages.take();
-			System.out.println("From wizard " + msg.getData());
+			//System.out.println("From wizard " + msg.getData());
+			if (msg.getParentRoom() == -1 && (msg.getData().compareTo(Wizard.EXIT) == 0
+					|| msg.getData().compareTo(Wizard.END) == 0)) {
+				lock2.unlock();
+			}
+		} catch (InterruptedException e) {
+			lock2.unlock();
+			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		if (lock2.getHoldCount() == 2) {
+			lock2.unlock();
+			lock2.unlock();
 		}
 		return msg;
 	}
