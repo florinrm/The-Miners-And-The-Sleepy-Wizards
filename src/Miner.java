@@ -87,7 +87,7 @@ public class Miner extends Thread {
 			Message messageFromParent = channel.getMessageWizardChannel();
 			if (messageFromParent.getData().compareTo(Wizard.END) == 0)
 				continue;
-			else if (messageFromParent.getData().compareTo(Wizard.EXIT) == 0)
+			if (messageFromParent.getData().compareTo(Wizard.EXIT) == 0)
 				break;
 			Message msgFromCurrent = channel.getMessageWizardChannel();
 			if (!solved.contains(msgFromCurrent.getCurrentRoom())) {
@@ -96,19 +96,6 @@ public class Miner extends Thread {
 				Message msg = new Message(messageFromParent.getCurrentRoom(), msgFromCurrent.getCurrentRoom(), hashedString);
 				channel.putMessageMinerChannel(msg);
 			}
- 			/*
-			if (messageFromWizard.getParentRoom() == -1) {
-				if (messageFromWizard.getData().compareTo(Wizard.EXIT) == 0)
-					break;
-			} else {
-				messageFromWizard = channel.getMessageWizardChannel();
-				if (!solved.contains(messageFromWizard.getCurrentRoom())) {
-					solved.add(messageFromWizard.getCurrentRoom());
-					String hashedString = encryptMultipleTimes(messageFromWizard.getData(), hashCount);
-					channel.putMessageMinerChannel(new Message(messageFromWizard.getParentRoom(),
-							messageFromWizard.getCurrentRoom(), hashedString));
-				}
-			} */
 		}
 	}
 }

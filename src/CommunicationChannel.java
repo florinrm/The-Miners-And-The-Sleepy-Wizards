@@ -8,13 +8,19 @@ public class CommunicationChannel {
 	/**
 	 * Creates a {@code CommunicationChannel} object.
 	 */
-	private ArrayBlockingQueue<Message> minersMessages = new ArrayBlockingQueue<>(1000);
-	private ArrayBlockingQueue<Message> wizardsMessages = new ArrayBlockingQueue<>(1000);
-	private ReentrantLock lock = new ReentrantLock();
-	private ReentrantLock lock2 = new ReentrantLock();
-	public static Object someLock = new Object();
+	private ArrayBlockingQueue<Message> minersMessages;
+	private ArrayBlockingQueue<Message> wizardsMessages;
+	private ReentrantLock lock;
+	private ReentrantLock lock2;
+	private final static int numberOfLocks = 2;
+	private final static int roomEnd = -1;
+	private final static int maxSize = 1000;
 
 	public CommunicationChannel() {
+		minersMessages = new ArrayBlockingQueue<>(maxSize);
+		wizardsMessages = new ArrayBlockingQueue<>(maxSize);
+		lock = new ReentrantLock();
+		lock2 = new ReentrantLock();
 	}
 
 	/**
@@ -26,11 +32,8 @@ public class CommunicationChannel {
 	 */
 	public void putMessageMinerChannel(Message message) {
 		try {
-			//System.out.println("To miner " + message.getData());
 			minersMessages.put(message);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -45,10 +48,7 @@ public class CommunicationChannel {
 		Message msg = null;
 		try {
 			msg = minersMessages.take();
-			//System.out.println("From miner " + msg.getData());
 		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return msg;
@@ -67,16 +67,14 @@ public class CommunicationChannel {
 		try {
 			//System.out.println("To wizard " + message.getData());
 			wizardsMessages.put(message);
-			if (message.getParentRoom() == -1 && (message.getData().compareTo(Wizard.EXIT) == 0
+			if (message.getCurrentRoom() == roomEnd && (message.getData().compareTo(Wizard.EXIT) == 0
 					|| message.getData().compareTo(Wizard.END) == 0)) {
 				lock.unlock();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		if (lock.getHoldCount() == 2) {
+		if (lock.getHoldCount() == numberOfLocks) {
 			lock.unlock();
 			lock.unlock();
 		}
@@ -93,17 +91,14 @@ public class CommunicationChannel {
 		Message msg = null;
 		try {
 			msg = wizardsMessages.take();
-			//System.out.println("From wizard " + msg.getData());
-			if (msg.getParentRoom() == -1 && (msg.getData().compareTo(Wizard.EXIT) == 0
+			if (msg.getCurrentRoom() == roomEnd && (msg.getData().compareTo(Wizard.EXIT) == 0
 					|| msg.getData().compareTo(Wizard.END) == 0)) {
 				lock2.unlock();
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		if (lock2.getHoldCount() == 2) {
+		if (lock2.getHoldCount() == numberOfLocks) {
 			lock2.unlock();
 			lock2.unlock();
 		}
